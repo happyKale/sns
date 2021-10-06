@@ -5,16 +5,23 @@ import styled from 'styled-components';
 
 const Grid = (props) => {
     //props에서 값을 가져온다.
-    const {is_flex, width, height, margin, padding, bg, children} = props;
+    const {is_flex, is_flex_center, flex, width, margin, padding, bg, children, border, radius, size, maxwidth, fixed} = props;
 
     //props에서 가져온 값 중 스타일에 적용될 값들을 하나로 묶는다.
     const styles = {
         is_flex: is_flex,
+        is_flex_center: is_flex_center,
+        flex: flex,
         width: width,
-        height: height,
+        // height: height,
         margin: margin,
         padding: padding,
         bg: bg,
+        border:border,
+        radius:radius,
+        size:size,
+        maxwidth:maxwidth,
+        fixed: fixed,
     }
 
     return(
@@ -28,25 +35,43 @@ const Grid = (props) => {
 Grid.defaultProps = {
     children: null,
     is_flex: false,
+    is_flex_center: false,
+    flex: false,
     width: "100%",
-    height: "100%",
+    // height: "100%",
     padding: false,
     margin: false,
     bg: false,
+    border: false,
+    radius: null,
+    size:"14px",
+    maxwidth:false,
+    fixed: false,
 }
 
 // styles에서 넘겨주는 props를 가지고 스타일에 값을 부여한다.
 const GridBox = styled.div`
     width: ${(props) => props.width};
-    height: ${(props) => props.height};
+    // height: ${(props) => props.height};
+    ${(props) => (props.size ? `font-size: ${props.size};` : "")}
     box-sizing: border-box;
     ${(props) => (props.padding ? `padding: ${props.padding};` : "")}
     ${(props) => (props.margin ? `margin: ${props.margin};` : "")}
     ${(props) => (props.bg ? `background-color: ${props.bg};` : "")}
+    ${(props) => (props.border ? `border: ${props.border};` : "")}
+    ${(props) => (props.radius ? `border-radius: ${props.radius};` : "")}
     ${(props) => (props.is_flex ? 
         `display: flex;
         align-items: center;
         justify-content: space-between;` : "")}
-`;
+    ${(props) => (props.is_flex_center ? 
+        `display: flex;
+        align-items: center;
+        justify-content: center;` : "")}
+    ${(props) => (props.flex ? `flex: ${props.flex};` : "")}   
+    ${(props) => (props.maxwidth ? `max-width: ${props.maxwidth};` : "")}  
+    ${(props) => (props.fixed ? `position: fixed; top: 0;` : "")}  
+
+    `;
 
 export default Grid;

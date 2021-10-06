@@ -2,25 +2,25 @@ import React from "react";
 import styled from 'styled-components';
 
 const Img = (props) => {
-    const {src, alt, width, height, type} = props;
+    const {src, width, height, type} = props;
 
     const styles = {
         width:width,
         height:height,
+        src: src,
     }
 
     if(type === "profile"){
         return(
             <React.Fragment>
-                <ImageProfile {...styles} 
-                src={src ? src : "https://www.pngall.com/wp-content/uploads/5/Profile-PNG-File.png"} alt={alt}></ImageProfile>
+                <ImageProfile {...styles}></ImageProfile>
             </React.Fragment>
         );
     }
 
     return(
         <React.Fragment>
-            <Image {...styles} src={src} alt={alt}></Image>
+            <Image {...styles}></Image>
         </React.Fragment>
     );
 
@@ -31,19 +31,23 @@ Img.defaultProps = {
     width: "250px",
     heigh: false,
     type: false,
-    alt: false,
-    src: "https://lh3.googleusercontent.com/proxy/D_0VlMrepXVszFCkFjqtI-19WAuxuniy05n0NnrjVKootlMeGcI68byQoXLt9lzFA1c3-dv8OmCEW7-C4DGcYGzm6sOgEj9TYnezqQrwnEihg84Os8NkrmPl4mj0za4phNpKm0MU6t9jJClorwO8",
+    src: null,
 }
 
-const Image = styled.image`
-    min-width: 250px;
+const Image = styled.div`
+    background-image: url("${(props => props.src)}");
+    background-size: cover;
     ${(props) => (props.width ? `width: ${props.width};` : "")};
     ${(props) => (props.height ? `height: ${props.height};` : "")};
 `;
 
-const ImageProfile = styled.image`
-    ${(props) => (props.width ? `width: ${props.width};` : "36px")};
-    ${(props) => (props.height ? `height: ${props.height};` : "36px")};
+const ImageProfile = styled.div`
+    --size: ${(props) => props.size}px;
+    width var(--size);
+    height: var(--size);
+    border-radius: var(--size);
+    background-image: url("${(props) => (props.src ?  `${props.src}`: `https://www.pngall.com/wp-content/uploads/5/Profile-PNG-File.png`)}");
+    background-size: cover;
 `;
 
 export default Img;
