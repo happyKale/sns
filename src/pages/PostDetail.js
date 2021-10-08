@@ -18,7 +18,7 @@ const PostDetail = (props) => {
         is_me = true;
     }
 
-    let like = post.like_cnt;
+    let like = post.like_cnt.length;
     if(like === 0){
         like = false;
     }
