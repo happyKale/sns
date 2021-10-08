@@ -28,7 +28,6 @@ const PostWrite = (props) => {
     const is_edit = post_id? true : false;
     //수정모드면 게시글 데이터를 가져온다. 아니면 null.
     let _post = is_edit ? post_list.find((p)=>p.id === post_id) : null;
-    console.log("포스트 없자요???? ", _post);
     React.useEffect(()=>{
         if(is_edit && !_post){
             console.log('게시글 정보가 없습니다!');
@@ -43,7 +42,7 @@ const PostWrite = (props) => {
         }else{
             //아니... 잘 됬었는데 갑자기 글작성하고 다시 글작성하려니까 그 전에 글작성 때
             // 쓴 이미지가 프리뷰로 나와있는거야... 왜지.... 도대체.....
-            dispatch(imageActions.setPreview("http://via.placeholder.com/400x300"));
+            dispatch(imageActions.setPreview(""));
         }
     },[]);
 
@@ -145,7 +144,7 @@ const PostWrite = (props) => {
                         </Grid>
                         <Grid width="100%" height="80%">
                             <Img width="100%" height="100%"
-                               src={preview ? preview : "http://via.placeholder.com/400x300"}
+                               src={preview ? preview : ""}
                             />
                         </Grid>
                     </Grid>
@@ -160,7 +159,7 @@ const PostWrite = (props) => {
                             <Img id="lay2" width="100%" height="100%" src={layout2}/>
                         </Grid>
                         <Grid margin="0.5vh" bg="lightgray" width="1px" height="8vh" border="1px solid lightgray"></Grid>
-                        <Grid border="5px solid #fff" _onClick={layoutClick} radius="10px" flex="1 1 0" width="96%" height="90%" margin="0.5vh" padding="2px">
+                        <Grid border="5px solid #9EF1ED" _onClick={layoutClick} radius="10px" flex="1 1 0" width="96%" height="90%" margin="0.5vh" padding="2px">
                             <Img margin="auto" id="lay3" width="98%" height="100%" src={layout3}/>
                         </Grid>
                     </Grid>
