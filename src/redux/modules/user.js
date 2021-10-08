@@ -45,7 +45,7 @@ const signupFB = (id, pwd, user_name) => {
             auth.currentUser.updateProfile({
                 displayName: user_name,
             }).then(()=>{
-                dispatch(setUser({user_name: user_name, id: id, user_profile: ''}));
+                dispatch(setUser({user_name: user_name, id: id, user_profile: 'https://pbs.twimg.com/media/C8Y79mAVYAAdWOS.jpg'}));
                 history.push('/');
             }).catch((error) => {
                 console.log(error);
@@ -75,7 +75,7 @@ const loginFB = (id, pwd) => {
                   setUser({
                     user_name: user.user.multiFactor.user.displayName,
                     id: id,
-                    user_profile: "",
+                    user_profile: "https://pbs.twimg.com/media/C8Y79mAVYAAdWOS.jpg",
                     uid: user.user.multiFactor.user.uid,
                   })
                 );

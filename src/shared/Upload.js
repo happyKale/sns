@@ -10,6 +10,7 @@ const Upload = (props) => {
     const dispatch = useDispatch();
     const is_uploading = useSelector((state) => state.image.uploading);
     const fileInput = React.useRef();
+    let name = "파일명";
 
     // 파일이 잘 가져와졌는지 확인
     const selectFile = (e) => {
@@ -21,30 +22,39 @@ const Upload = (props) => {
     
         // ref로도 확인해봅시다. :)
         console.log(fileInput.current.files[0]);
-    };
+        console.log("파일이름:",fileInput.current.files[0].name);
+        name = fileInput.current.files[0].name;
+        const reader = new FileReader();
+        const file = e.target.files[0];
 
-    // Storage에 업로드
-    const uploadFB = () => {
-        if (!fileInput.current || fileInput.current.files.length === 0) {
-            window.alert("파일을 선택해주세요!");
-            return;
-        }
-        dispatch(imageActions.uploadImageFB(fileInput.current.files[0]));
-    }
+        // 파일 내용을 읽어온다.
+        reader.readAsDataURL(file);
+
+        // 읽기가 끝나면 발생하는 이벤트 핸들러
+        reader.onloadend = () => {
+            //reader.result는 파일의 컨텐츠(내용물)이다.
+            console.log(reader.result);
+            dispatch(imageActions.setPreview(reader.result));
+        };
+    };
 
     return(
         <React.Fragment>
             {/* disabled 이거는 왜 하는거지....?? */}
-            <Input id="file" type="file" ref={fileInput} onChange={selectFile}
+            <input value="" id="file" type="file" ref={fileInput} onChange={selectFile}
                 disabled={is_uploading}/>
-            {/* <Label for="file">업로드</Label> */}
-            <Btn _onClick={uploadFB}>업로드하기!!!</Btn>
+            {/* <Label htmlFor="file" disabled={is_uploading}> 파일 선택</Label> */}
         </React.Fragment>
     );
 };
 
 const Input = styled.input`
-    background-color: pink;
+    height: 30px;
+    widht: 200px;
+    border: 1px solid gray;
+    background-color: lightgray;
+    border-radius: 4px;
+
 `;
 const Label = styled.label`
     display: inline-block; 
@@ -55,8 +65,10 @@ const Label = styled.label`
     background-color: #03A9F4; 
     cursor: pointer;
     border: 1px solid lightgray;
-    border-radius: 15px;
-
+    border-radius: 5px;
+    font-family: "Pretendard-Regular";
+    font-size: 16px;
+    line-height: 30px;
 `;
 
 export default Upload;

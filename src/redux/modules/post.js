@@ -2,19 +2,29 @@ import { createAction, handleActions } from 'redux-actions';
 import {produce} from "immer";
 
 // 파이어베이스 연결
-import { firestore } from '../../shared/firebase';
+import { firestore, storage } from '../../shared/firebase';
 
 // moment 패키지는 날짜, 시간 객체를 편히 다루게 해준다.
 // yarn add moment
 import moment from "moment";
 
+import { actionCreators as imageActions } from './image';
+
 // 액션 타입
 const SET_POST = "SET_POST";
 const ADD_POST = "ADD_POST";
+const EDIT_POST = "EDIT_POST";
+const DELETE_POST = "DELETE_POST";
+const ADD_LIKE ="ADD_LIKE";
+const DELETE_LIKE ="DELETE_LIKE";
 
 // 액션 생성 함수
 const setPost = createAction(SET_POST, (post_list) => ({post_list}));
 const addPost = createAction(ADD_POST, (post) => ({post}));
+const editPost = createAction(EDIT_POST, (post_id, post) => ({post_id, post}));
+const deletePost = createAction(DELETE_POST, (post_id) => ({post_id}));
+const addLike = createAction(ADD_LIKE, (post_id) => ({post_id}));
+const deleteLike = createAction(DELETE_LIKE, (post_id) => ({post_id}));
 
 // initialState
 const initialState = {
@@ -61,8 +71,23 @@ const getPostFB = () => {
                 }
                 post_list.push(post);
             })
+
+            //입력날짜 순서대로 정렬
+            // 최근에 올린 게시물이 위에 있도록!
+            const result = post_list.sort(function (a, b) {
+                let x = a.insert_dt.toLowerCase();
+                let y = b.insert_dt.toLowerCase();
+                if (x > y) {
+                    return -1;
+                }
+                if (x < y) {
+                    return 1;
+                }
+                return 0;
+            });
+
             console.log("getPostFB의 포스트:", post_list);
-            dispatch(setPost(post_list));
+            dispatch(setPost(result));
         })
     };
 };
@@ -72,8 +97,8 @@ const addPostFB = (contents = "", layout = "") => {
     return function (dispatch, getState, {history}){
 
         const postDB = firestore.collection("post");
-
         const _user = getState().user.user;
+        
         const user_info = {
             user_name: _user.user_name,
             user_id: _user.uid,
@@ -86,24 +111,176 @@ const addPostFB = (contents = "", layout = "") => {
             layout_type: layout,
             insert_dt: moment().format("YYYY-MM-DD hh:mm:ss")
         };
-
+        
         console.log("addPostFB의 _post: ",_post);
+       
+        // getState()로 store의 상태값에 접근할 수 있다.
+        const _image = getState().image.preview;
+        
+        // 파일 이름은 유저의 id와 현재 시간을 밀리초로 넣어준다.
+        const _upload = storage
+            .ref(
+                `images/${user_info.user_id}_${new Date().getTime()}`
+            )
+            .putString(_image, "data_url");
 
-        postDB.add({...user_info, ..._post}).then((doc) => {
-            //아이디 추가!
-            let post = {user_info, ..._post, id:doc.id};
-            //리덕스에 넣어준다.
-            dispatch(addPost(post));
-            //메인화면으로 이동한다.
-            history.replace("/");
-            console.log("addPostFB에서 아이디 추가한 post: ", post);
-        }).catch((err) => {
-            console.log('post 작성 실패! ',err);
+        // 게시글을 작성하기 전에 이미지를 먼저 업로드하고 성공했을 때만
+        // firestore에 게시글 정보를 저장한다.
+        _upload.then((snapshot) => {
+            snapshot
+                .ref
+                .getDownloadURL()
+                .then((url) => {
+                    console.log(url);
+                    dispatch(imageActions.uploadImage(url));
+                    return url;
+                })
+                .then((url) => {
+                    //return으로 넘겨준 값을 확인.
+                    console.log(url);
+
+                    postDB.add({...user_info, ..._post, image_url: url}).then((doc) => {
+                        //아이디 추가!
+                        let post = {user_info, ..._post, id:doc.id, image_url: url};
+                        //리덕스에 넣어준다.
+                        dispatch(addPost(post));
+                        //메인화면으로 이동한다.
+                        history.replace("/");
+                        console.log("addPostFB에서 아이디 추가한 post: ", post);
+                    }).catch((err) => {
+                        window.alert('게시글 작성에 문제가 생겼습니다!')
+                        console.log('게시글 작성 실패! ',err);
+                    });
+                });
+        })
+        .catch((err) => {
+            window.alert('이미지 업로드에 실패하였습니다.');
+            console.log('이미지 업로드 실패!');
         });
-
     };
 };
 
+// 게시글 수정
+const editPostFB = (post_id = null, post ={}) => {
+    return function (dispatch, getState, {history}){
+        if(!post_id){
+            console.log("게시물 정보가 없습니다!");
+            return;
+        }
+        
+        //사용자가 사진을 수정하지 않았는지 확인
+        const _image = getState().image.preview;
+
+        const _post_idx = getState().post.list.findIndex((p) => p.id === post_id);
+        const _post = getState().post.list[_post_idx];
+        console.log(_post);
+        console.log("수정했다고!!!!");
+        console.log("가져온포스트:", post);
+
+        const postDB = firestore.collection("post");
+
+        // 이미지 수정 안 했을 때
+        if(_image === _post.image_url){
+            postDB.doc(post_id).update(post).then(doc => {
+                dispatch(editPost(post.id, {...post}));
+                history.replace('/');
+            })
+            return;
+        }else{
+        // 이미지 수정 했을 때 
+            const user_id = getState().user.user.uid;
+            // addPostFB에서 작성해 놓은 걸 가져옴!
+            // 파일 이름은 유저의 id와 현재 시간을 밀리초로 넣어준다.
+            const _upload = storage
+            .ref(
+                `images/${user_id}_${new Date().getTime()}`
+            )
+            .putString(_image, "data_url");
+
+            // 게시글을 작성하기 전에 이미지를 먼저 업로드하고 성공했을 때만
+            // firestore에 게시글 정보를 저장한다.
+            _upload.then((snapshot) => {
+                snapshot
+                    .ref
+                    .getDownloadURL()
+                    .then((url) => {
+                        console.log(url);
+                        dispatch(imageActions.uploadImage(url));
+                        return url;
+                    })
+                    .then((url) => {
+                        postDB.doc(post_id).update({...post, image_url: url}).then(doc => {
+                            dispatch(editPost(post.id, {...post, image_url: url}));
+                            history.replace('/');
+                        })
+                    });
+            })
+            .catch((err) => {
+                window.alert('이미지 업로드에 실패하였습니다.');
+                console.log('이미지 업로드 실패!');
+            });
+        }
+    };
+};
+// 게시글 삭제
+const deletePostFB = (post_id = null) => {
+    return function (dispatch, getState, {history}) {
+        if(!post_id){
+            console.log("게시물 정보가 없습니다!");
+            return;
+        }
+
+        const postDB = firestore.collection("post");
+        postDB.doc(post_id).delete().then(() => {
+            console.log("게시글 삭제 성공!");
+            dispatch(deletePost(post_id));
+            history.replace('/');
+        })
+    };
+};
+
+//좋아요 추가하기
+const addLikeFB = (post_id = null) => {
+    return function (dispatch, getState, {history}){
+        if(!post_id){
+            console.log("게시물 정보가 없습니다!");
+            return;
+        }
+
+        const postDB = firestore.collection("post");
+        const _post_idx = getState().post.list.findIndex((p) => p.id === post_id);
+        const _post = getState().post.list[_post_idx];
+        const _like_cnt = _post.like_cnt;
+
+        postDB.doc(post_id).update({
+            like_cnt: _like_cnt+1
+        }).then((doc) => {
+            dispatch(addLike(post_id));
+        })
+    };
+};
+//좋아요 삭제하기
+const deleteLikeFB = (post_id = null) => {
+    return function (dispatch, getState, {history}){
+        if(!post_id){
+            console.log("게시물 정보가 없습니다!");
+            return;
+        }
+        const postDB = firestore.collection("post");
+        const _post_idx = getState().post.list.findIndex((p) => p.id === post_id);
+        const _post = getState().post.list[_post_idx];
+        const _like_cnt = _post.like_cnt;
+        if(_like_cnt === 0){
+            return;
+        }
+
+        postDB.doc(post_id).update({
+            like_cnt: _like_cnt-1
+        }).then((doc) => {
+            dispatch(deleteLike(post_id));
+        })
+    };
+};
 
 
 // 리듀서
@@ -116,15 +293,42 @@ export default handleActions(
             //unshift는 배열 맨 앞에 데이터를 넣어준다.
             draft.list.unshift(action.payload.post);
         }),
+        [EDIT_POST]: (state, action) => produce(state, (draft) => {
+            //리스트의 몇 번재를 고쳐야 되는지 알아야한다.
+            //findIndex는 배열에서 조건에 맞는 아이템의 인덱스를 반환해준다.
+            let idx = draft.list.findIndex((p) => p.id === action.payload.post_id);
 
+            draft.list[idx] = {...draft.list[idx], ...action.payload.post};
+        }),
+        [DELETE_POST]: (state, action) => produce(state, (draft) => {
+            draft.list.filter((p, idx) => {
+                return p.id !== action.payload.post_id;
+            })
+        }),
+        [ADD_LIKE]: (state, action) => produce(state, (draft) => {
+            let idx = draft.list.findIndex((p) => p.id === action.payload.post_id);
+            draft.list[idx].like_cnt += 1;
+        }),
+        [DELETE_LIKE]: (state, action) => produce(state, (draft) => {   
+            let idx = draft.list.findIndex((p) => p.id === action.payload.post_id);
+            draft.list[idx].like_cnt -= 1;
+        }),
     },initialState
 );
 
 const actionCreators = {
     setPost,
     addPost,
+    editPost,
+    deletePost,
+    addLike,
+    deleteLike,
     getPostFB,
     addPostFB,
+    editPostFB,
+    deletePostFB,
+    addLikeFB,
+    deleteLikeFB,
 };
 
 export {actionCreators};

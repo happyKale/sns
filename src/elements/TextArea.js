@@ -2,7 +2,8 @@ import React from "react";
 import styled from 'styled-components';
 
 const TextArea = (props) => {
-    const {_onChange, name, width, cols, rows, size, border, bg, radius, padding, margin, family, placeholder} = props;
+    const {_onChange, name, width, cols, rows, size, border, bg, 
+        radius, padding, margin, family, placeholder, value} = props;
 
     const styles = {
         width:width,
@@ -17,7 +18,8 @@ const TextArea = (props) => {
 
     return(
         <React.Fragment>
-            <Area {...styles} onChange={_onChange} name={name} cols={cols} rows={rows} placeholder={placeholder}></Area>
+            <Area {...styles} onChange={_onChange} value={value}
+            name={name} cols={cols} rows={rows} placeholder={placeholder}></Area>
         </React.Fragment>
     );
 };
@@ -36,6 +38,7 @@ TextArea.defaultProps = {
     margin: false,
     family: false,
     placeholder: null,
+    value:"",
 }
 
 const Area = styled.textarea`
@@ -49,7 +52,7 @@ const Area = styled.textarea`
     ${(props) => (props.family ? `font-family: ${props.family};` : "")}
     resize: none;
     box-sizing: border-box;
-    outline: none;
+    outline-color: #4FC3F7;
 `;
 
 export default TextArea;

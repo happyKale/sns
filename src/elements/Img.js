@@ -2,7 +2,7 @@ import React from "react";
 import styled from 'styled-components';
 
 const Img = (props) => {
-    const {margin ,id, src, width, height, type, _onClick, radius, sizetype, position} = props;
+    const {cursor, margin ,id, src, width, height, type, _onClick, radius, sizetype, position} = props;
 
     const styles = {
         margin:margin,
@@ -12,6 +12,7 @@ const Img = (props) => {
         radius:radius,
         sizetype:sizetype,
         position:position,
+        cursor:cursor,
     }
 
     if(type === "profile"){
@@ -20,6 +21,16 @@ const Img = (props) => {
                 <ImageProfile {...styles}></ImageProfile>
             </React.Fragment>
         );
+    }
+
+    if(type === "rectangle"){
+        return (
+            <AspectOutter>
+                <AspectInner {...styles}>
+
+                </AspectInner>
+            </AspectOutter>
+        )
     }
 
     return(
@@ -41,6 +52,7 @@ Img.defaultProps = {
     radius: null,
     sizetype: "contain",
     position: "center",
+    cursor:null,
 }
 
 const Image = styled.div`
@@ -53,6 +65,7 @@ const Image = styled.div`
     ${(props) => (props.width ? `width: ${props.width};` : "")};
     ${(props) => (props.height ? `height: ${props.height};` : "")};
     ${(props) => (props.radius ? `border-radius: ${props.radius};` : "")};
+    ${(props) => (props.cursor ? `cursor: pointer;` : "")};
 `;
 
 const ImageProfile = styled.div`
@@ -64,6 +77,21 @@ const ImageProfile = styled.div`
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
+`;
+
+const AspectOutter = styled.div`
+    width: 100%;
+    min-width: 250px;
+`;
+
+const AspectInner = styled.div`
+    position: relative; 
+    padding-top: 75%;
+    overflow: hidden;
+    background-image: url("${(props => props.src)}");
+    background-size: cover;
+    background-position: center;
+    ${(props) => (props.cursor ? `cursor: pointer;` : "")};
 `;
 
 export default Img;

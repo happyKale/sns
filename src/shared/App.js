@@ -39,7 +39,9 @@ function App() {
           <Route exact path="/login" component={Login}/>
           <Route exact path="/signup" component={Signup}/>
           <Route exact path="/write" component={PostWrite}/>
-          <Route exact path="/detail" component={PostDetail}/>
+          <Route exact path="/write/:id" component={PostWrite}/>
+          <Route exact path="/post/" component={PostDetail}/>
+          <Route exact path="/post/:id" component={PostDetail}/>
         </ConnectedRouter>
       {/* </Grid> */}
     </React.Fragment>

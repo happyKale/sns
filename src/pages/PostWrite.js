@@ -4,6 +4,7 @@ import { Grid, Img, Btn, Text, TextArea } from '../elements';
 import { useSelector, useDispatch } from 'react-redux';
 
 import {actionCreators as postActions} from "../redux/modules/post";
+import {actionCreators as imageActions} from "../redux/modules/image";
 
 import Upload from '../shared/Upload';
 
@@ -14,17 +15,45 @@ import layout3 from "../img/layout3.png";
 
 const PostWrite = (props) => {
     const dispatch = useDispatch();
-    // 입력칸의 내용 저장하기
-    const [contents, setContents] = React.useState('');
-    const [layoutType, setLayoutType] = React.useState('');
-
-    // 잘 모르겠어서 그냥 자바스크립트 문법으로 합니다.
-    // 왜 useRef()가 안되는걸까요....
-
+    const preview = useSelector((state) => state.image.preview);
+    const post_list = useSelector((state) => state.post.list);
     // 로그인 체크하기
     const is_login = useSelector((state) => state.user.is_login);
     // 이거..모르겠어.. 왜 props를 히스토리에..??
     const {history} = props;
+    //주소롤 넘겨줬던 id를 받아온다.
+    //이걸 가지고 수정인지 아닌지를 구별하자!
+    console.log(props.match.params.id);
+    const post_id = props.match.params.id;
+    // post_id가 있으면 true, 없으면 false.
+    const is_edit = post_id? true : false;
+
+    //수정모드면 게시글 데이터를 가져온다. 아니면 null.
+    let _post = is_edit ? post_list.find((p)=>p.id === post_id) : null;
+    console.log(_post);
+
+    React.useEffect(()=>{
+        if(is_edit && !_post){
+            console.log('게시글 정보가 없습니다!');
+            history.goBack();
+            return;
+        }
+
+        // 여기서 post를 체크하진 않는 이유는 post가 없었다면 이미 위에서
+        // 리턴이 되었기 떄문이다.
+        if(is_edit){
+            dispatch(imageActions.setPreview(_post.image_url));
+        }
+    },[]);
+
+    // 입력칸의 내용 저장하기
+    const [contents, setContents] = React.useState(_post ? _post.contents : "");
+    const [layoutType, setLayoutType] = React.useState('');
+
+
+
+    // 잘 모르겠어서 그냥 자바스크립트 문법으로 합니다.
+    // 왜 useRef()가 안되는걸까요....
 
     // 로그인이 안 되어 있으면 다른 화면을 보여주기
     // 로그인하러 갈 수 있도록 안내문 적어넣음.
@@ -84,9 +113,17 @@ const PostWrite = (props) => {
         setContents(e.target.value);
     }
 
-    // 데이터베이스에 게시글 정보 저장하는 함수
+    // 게시글 정보 저장하는 함수
     const addPost = () => {
         dispatch(postActions.addPostFB(contents, layoutType));
+    }
+    // 게시글 정보 수정하는 함수
+    const editPost = () => {
+        dispatch(postActions.editPostFB(post_id, {contents: contents, layout_type:layoutType}));
+    }
+    // 게시글 정보 삭제하는 함수
+    const deletePost = () => {
+        dispatch(postActions.deletePostFB(post_id));
     }
 
     return (
@@ -94,37 +131,55 @@ const PostWrite = (props) => {
             <Grid margin="auto" width="80%" maxwidth="600px">
                 {/* 제목 */}
                 <Grid margin="3vh 0px">
-                    <Text family="BBTreeGB" margin="0px 0px 10px 0px" size="24px" bold align="center">게시글 작성</Text>
+                    <Text family="BBTreeGB" margin="0px 0px 10px 0px" size="24px" bold align="center">
+                        { is_edit ? "게시글 수정" : "게시글 작성" }
+                    </Text>
                 </Grid>
                 <Grid margin="0px 0px 3vh 0px">
                     {/* 글작성 */}
-                    <TextArea _onChange={chageContents} radius="10px" border="1px solid lightgray" padding="15px" family="Pretendard-Regular" placeholder="게시글을 작성하세요."/>
+                    <TextArea value={contents} _onChange={chageContents} radius="10px" border="1px solid lightgray" padding="15px" family="Pretendard-Regular" placeholder="게시글을 작성하세요."/>
                     {/* 사진첨부 */}
-                    <Grid radius="10px" margin="2vh 0px" height="30vh" bg="white" border="1px solid lightgray">
-                        <Grid border="1px solid red">
+                    <Grid radius="10px" padding="10px" margin="2vh 0px" height="30vh" bg="white" border="1px solid lightgray">
+                        <Grid margin="0px 0px 10px 0px">
                             <Upload/>
+                        </Grid>
+                        <Grid width="100%" height="80%">
+                            <Img width="100%" height="100%"
+                               src={preview ? preview : "http://via.placeholder.com/400x300"}
+                            />
                         </Grid>
                     </Grid>
                     {/* 레이아웃 */}
                     <Text family="Pretendard-Regular" margin="0px 0px 1vh 0px" align="center" size="17px">레이아웃</Text>
                     <Grid height="9.5vh" margin="auto" is_flex radius="10px" bg="white" border="1px solid lightgray">
-                        <Grid border="5px solid #fff" _onClick={layoutClick} radius="10px" flex="1 1 0" width="96%" height="90%" margin="0.5vh" padding="2px 0px">
+                        <Grid border="5px solid #fff" _onClick={layoutClick} radius="10px" flex="1 1 0" width="96%" height="90%" margin="0.5vh" padding="2px">
                             <Img id="lay1" width="100%" height="100%" src={layout1}/>
                         </Grid>
-                        <Grid margin="1vh" width="1px" height="8vh" border="1px solid lightgray"></Grid>
-                        <Grid border="5px solid #fff" _onClick={layoutClick} radius="10px" flex="1 1 0" width="96%" height="90%" margin="0.5vh" padding="2px 0px">
+                        <Grid margin="0.5vh" bg="lightgray" width="1px" height="8vh" border="1px solid lightgray"></Grid>
+                        <Grid border="5px solid #fff" _onClick={layoutClick} radius="10px" flex="1 1 0" width="96%" height="90%" margin="0.5vh" padding="2px">
                             <Img id="lay2" width="100%" height="100%" src={layout2}/>
                         </Grid>
-                        <Grid margin="1vh" width="1px" height="8vh" border="1px solid lightgray"></Grid>
-                        <Grid border="5px solid #fff" _onClick={layoutClick} radius="10px" flex="1 1 0" width="96%" height="90%" margin="0.5vh" padding="2px 0px">
-                            <Img margin="auto" id="lay3" width="80%" height="100%" src={layout3}/>
+                        <Grid margin="0.5vh" bg="lightgray" width="1px" height="8vh" border="1px solid lightgray"></Grid>
+                        <Grid border="5px solid #fff" _onClick={layoutClick} radius="10px" flex="1 1 0" width="96%" height="90%" margin="0.5vh" padding="2px">
+                            <Img margin="auto" id="lay3" width="98%" height="100%" src={layout3}/>
                         </Grid>
                     </Grid>
                     {/* 레이아웃 끝 */}
                 </Grid>
                 {/* 작성하기 버튼 */}
                 <Grid>
+                { is_edit ? (
+                    <Grid is_flex width="100%">
+                        <Grid is_flex_center>
+                            <Btn _onClick={deletePost} family="BBTreeGB" size="20px" bg="#00BCD4" color="white" radius="4px" width="90%">삭제하기</Btn>
+                        </Grid>
+                        <Grid is_flex_center>
+                            <Btn _onClick={editPost} family="BBTreeGB" size="20px" bg="#448AFF" color="white" radius="4px" width="90%">수정하기</Btn>
+                        </Grid>
+                    </Grid>                        
+                ) : (
                     <Btn _onClick={addPost} family="BBTreeGB" size="20px" bg="#448AFF" color="white" radius="10px" width="100%">작성하기</Btn>
+                )}
                 </Grid>
             </Grid>
         </React.Fragment>

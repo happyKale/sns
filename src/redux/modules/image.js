@@ -7,15 +7,18 @@ import { storage } from '../../shared/firebase';
 // 액션 타입
 const UPLOADING = "UPLOADING";
 const UPLOAD_IMAGE = "UPLOAD_IMAGE";
+const SET_PREVIEW = "SET_PREVIEW";
 
 // 액션 생성 함수
 const uploading = createAction(UPLOADING, (uploading) => ({uploading}));
 const uploadImage = createAction(UPLOAD_IMAGE, (image_url) => ({image_url}));
+const setPreview = createAction(SET_PREVIEW, (preview) => ({preview}));
 
 // initial state
 const initialState = {
     image_url: "http://via.placeholder.com/400x300",
     uploading: false,
+    preview: null,
 }
 
 // 미들웨어 액션
@@ -51,12 +54,16 @@ export default handleActions(
             draft.image_url = action.payload.image_url;
             draft.uploading = false;
         }),
+        [SET_PREVIEW]: (state, action) => produce(state, (draft) => {
+            draft.preview = action.payload.preview;
+        })
     }, initialState
 );
 
 const actionCreators = {
     uploadImage,
     uploadImageFB,
+    setPreview,
 };
 
 export {actionCreators};

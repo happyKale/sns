@@ -3,6 +3,7 @@ import { Grid, Btn, Input, Text } from '../elements';
 
 import { useDispatch } from 'react-redux';
 import { actionCreators as userActions } from '../redux/modules/user';
+import { emailCheck } from "../shared/common";
 
 const Signup = (props) => {
     const dispatch = useDispatch();
@@ -21,6 +22,11 @@ const Signup = (props) => {
         if( pwd !== pwd_check){
             return;
         }
+
+        if(!emailCheck(id)){
+            window.alert('이메일 형식이 맞지 않습니다!');
+            return;
+          }
         
         dispatch(userActions.signupFB(id, pwd, user_name));
     }
