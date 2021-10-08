@@ -1,15 +1,18 @@
 import React from "react";
 import styled from 'styled-components';
 import {Grid, Img, Text, Btn} from '../elements';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {history} from "../redux/configureStore";
 import { actionCreators as postActions } from '../redux/modules/post';
 
 const Post = (props) => {
     const layout = [props.layout_type];
+    const alreadyLike = props.alreadyLike;
     const dispatch = useDispatch();
+    const user_info = useSelector((state) => state.user.user);
 
-    let like = props.like_cnt;
+
+    let like = props.like_cnt.length;
     if(like === 0){
         like = false;
     }
@@ -20,13 +23,18 @@ const Post = (props) => {
     }
 
     const clickLike = (e) => {
-        let target = e.target.style.color;
-        if(target == ''){
-            e.target.style.color = 'red';
-            dispatch(postActions.addLikeFB(props.id));
+        if(user_info){
+            let target = e.target.style.color;
+            console.log(target);
+            if(target == ''){
+                e.target.style.color = 'red';
+                dispatch(postActions.addLikeFB(props.id, user_info.uid));
+            }else{
+                e.target.style.color = '';
+                dispatch(postActions.deleteLikeFB(props.id, user_info.uid));
+            }
         }else{
-            e.target.style.color = '';
-            dispatch(postActions.deleteLikeFB(props.id));
+            window.alert("로그인을 해야 좋아요를 누를 수 있습니다!");
         }
     }
 
@@ -108,11 +116,19 @@ const Post = (props) => {
                 }
                 {/* 하트와 수정하기 버튼 */}
                 <Grid is_flex height="5vh">
-                    <Grid is_flex_center width="25%" margin="0px 0px 0px 1vh">
-                        <Btn size="3vh" height="100%" bg="transparent" color="gray" width="33%" margin="5%">
-                            <i onClick={clickLike} className="fas fa-heart"></i>
-                        </Btn>
-                        <Text family="BBTreeGB" size="18px" width="70%" margin="auto" align="left">
+                    <Grid is_flex_center width="20%" margin="0px 0px 0px 1vh">
+                        {
+                            alreadyLike ? (
+                                <Btn color="red" size="3vh" height="100%" bg="transparent" width="3vh" margin="5%">
+                                    <i onClick={clickLike} className="fas fa-heart"></i>
+                                </Btn>
+                            ):(
+                                <Btn color="gray" size="3vh" height="100%" bg="transparent" width="3vh" margin="5%">
+                                    <i onClick={clickLike} className="fas fa-heart"></i>
+                                </Btn>
+                            ) 
+                        }                        
+                        <Text family="BBTreeGB" size="18px" margin="auto" align="left">
                             {like}
                         </Text>
                     </Grid>

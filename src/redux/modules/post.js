@@ -23,8 +23,8 @@ const setPost = createAction(SET_POST, (post_list) => ({post_list}));
 const addPost = createAction(ADD_POST, (post) => ({post}));
 const editPost = createAction(EDIT_POST, (post_id, post) => ({post_id, post}));
 const deletePost = createAction(DELETE_POST, (post_id) => ({post_id}));
-const addLike = createAction(ADD_LIKE, (post_id) => ({post_id}));
-const deleteLike = createAction(DELETE_LIKE, (post_id) => ({post_id}));
+const addLike = createAction(ADD_LIKE, (post_id, uid) => ({post_id, uid}));
+const deleteLike = createAction(DELETE_LIKE, (post_id, uid) => ({post_id, uid}));
 
 // initialState
 const initialState = {
@@ -36,7 +36,7 @@ const initialPost = {
     image_url: "https://pbs.twimg.com/media/E_uPJtnVEAIQleT.jpg",
     contents: "",
     comment_cnt: 0,
-    like_cnt: 0,
+    like_cnt: [],
     insert_dt: moment().format("YYYY-MM-DD hh:mm:ss"),
     layout_type: "",
 };
@@ -247,15 +247,40 @@ const addLikeFB = (post_id = null) => {
             return;
         }
 
+        // "post" 컬렉션의 데이터 가져옴
         const postDB = firestore.collection("post");
+        // 리덕스에 있는 유저 정보 가져옴
+        const user = getState().user.user;
+        // 유저 아이디
+        const user_id = user.uid;
+
+        // 리덕스에 있는 게시글 데이터 중에서 좋아요를 누른 게시물을 찾음.
         const _post_idx = getState().post.list.findIndex((p) => p.id === post_id);
         const _post = getState().post.list[_post_idx];
-        const _like_cnt = _post.like_cnt;
+        // 좋아요 누른 게시글의 현재 좋아요 데이터.
+        let result = _post.like_cnt;
+        console.log("아이디: ",user_id);
+        console.log("좋아요 데이터: ",result);
 
+        // 좋아요 데이터는 배열 형태로 좋아요를 누른 유저의 아이디를 담고 있음.
+        // 좋아요 데이터 중에서 현재 유저 아이디와 동일한 아이디가 있는지 확인.
+        let idx = result.findIndex((id) => id === user_id);
+        console.log("인덱스: ",idx);
+        // 좋아요 데이터에 유저 아이디가 없다면 좋아요 데이터에 현재 유저 아이디를 추가.
+        // 이미 좋아요 데이터에 유저 아이디가 있다면 종료.
+        if(idx === -1){
+            result = [...result, user_id];
+        }else{
+            return;
+        }
+
+        // "post" 컬렉션의 해당 게시글 데이터에 좋아요 데이터를 업데이트 함.
         postDB.doc(post_id).update({
-            like_cnt: _like_cnt+1
+            like_cnt: result
         }).then((doc) => {
-            dispatch(addLike(post_id));
+            //  성공적으로 업데이트 되었다면 
+            // 리덕스 데이터에도 업데이트 함.
+            dispatch(addLike(post_id, user_id));
         })
     };
 };
@@ -266,18 +291,37 @@ const deleteLikeFB = (post_id = null) => {
             console.log("게시물 정보가 없습니다!");
             return;
         }
+
+        // "post" 컬렉션의 데이터 가져옴
         const postDB = firestore.collection("post");
+        // 리덕스에 있는 유저 정보 가져옴
+        const user = getState().user.user;
+        // 유저 아이디
+        const user_id = user.uid;
+
         const _post_idx = getState().post.list.findIndex((p) => p.id === post_id);
         const _post = getState().post.list[_post_idx];
         const _like_cnt = _post.like_cnt;
-        if(_like_cnt === 0){
+
+        // 좋아요 데이터의 길이가 0이라면 종료.
+        // 좋아요를 누른 사람이 아무도 없다는 뜻.
+        // 좋아요를 취소할 것도 없다는 뜻.
+        if(_like_cnt.length === 0){
             return;
         }
 
+        // 좋아요 데이터 중에서 현재 유저 아이디와 같은 아이디가 있으면 삭제한다.
+        const result = _like_cnt.filter((like, idx) => {
+            return like !== user_id;
+        })
+
+        // "post" 컬렉션의 해당 게시글 데이터에 좋아요 데이터를 업데이트 함.
         postDB.doc(post_id).update({
-            like_cnt: _like_cnt-1
+            like_cnt: result
         }).then((doc) => {
-            dispatch(deleteLike(post_id));
+            //  성공적으로 업데이트 되었다면 
+            // 리덕스 데이터에도 업데이트 함.
+            dispatch(deleteLike(post_id, user_id));
         })
     };
 };
@@ -306,12 +350,21 @@ export default handleActions(
             })
         }),
         [ADD_LIKE]: (state, action) => produce(state, (draft) => {
+            // 리덕스에 있는 게시글 데이터 중에서 현재 액션이 일어난 게시글을 찾음.
             let idx = draft.list.findIndex((p) => p.id === action.payload.post_id);
-            draft.list[idx].like_cnt += 1;
+            // 해당 게시글의 좋아요 데이터
+            let like = draft.list[idx].like_cnt;
+            // 만약 좋아요 데이터에 유저아이디가 없다면 유저아이디를 추가한다.
+            if(like.findIndex((id) => id === action.payload.uid) === -1){
+                draft.list[idx].like_cnt.push(action.payload.uid);
+            }
         }),
         [DELETE_LIKE]: (state, action) => produce(state, (draft) => {   
             let idx = draft.list.findIndex((p) => p.id === action.payload.post_id);
-            draft.list[idx].like_cnt -= 1;
+            let result = draft.list[idx].like_cnt.filter((id)=>{
+                return id !== action.payload.uid;
+            }) 
+            draft.list[idx].like_cnt = result;
         }),
     },initialState
 );

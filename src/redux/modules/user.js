@@ -98,10 +98,11 @@ const loginCheckFB = () => {
     return function (dispatch, getState, {history}) {
         auth.onAuthStateChanged((user) => {
             if(user){
+                console.log("로그인확인하는 유저: ",user);
                 dispatch(
                   setUser({
                     user_name: user.displayName,
-                    user_profile: "",
+                    user_profile: "https://pbs.twimg.com/media/C8Y79mAVYAAdWOS.jpg",
                     id: user.email,
                     uid: user.uid,
                   })

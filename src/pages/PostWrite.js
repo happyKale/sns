@@ -23,15 +23,12 @@ const PostWrite = (props) => {
     const {history} = props;
     //주소롤 넘겨줬던 id를 받아온다.
     //이걸 가지고 수정인지 아닌지를 구별하자!
-    console.log(props.match.params.id);
     const post_id = props.match.params.id;
     // post_id가 있으면 true, 없으면 false.
     const is_edit = post_id? true : false;
-
     //수정모드면 게시글 데이터를 가져온다. 아니면 null.
     let _post = is_edit ? post_list.find((p)=>p.id === post_id) : null;
-    console.log(_post);
-
+    console.log("포스트 없자요???? ", _post);
     React.useEffect(()=>{
         if(is_edit && !_post){
             console.log('게시글 정보가 없습니다!');
@@ -43,13 +40,16 @@ const PostWrite = (props) => {
         // 리턴이 되었기 떄문이다.
         if(is_edit){
             dispatch(imageActions.setPreview(_post.image_url));
+        }else{
+            //아니... 잘 됬었는데 갑자기 글작성하고 다시 글작성하려니까 그 전에 글작성 때
+            // 쓴 이미지가 프리뷰로 나와있는거야... 왜지.... 도대체.....
+            dispatch(imageActions.setPreview("http://via.placeholder.com/400x300"));
         }
     },[]);
 
     // 입력칸의 내용 저장하기
     const [contents, setContents] = React.useState(_post ? _post.contents : "");
     const [layoutType, setLayoutType] = React.useState('');
-
 
 
     // 잘 모르겠어서 그냥 자바스크립트 문법으로 합니다.
@@ -109,7 +109,7 @@ const PostWrite = (props) => {
 
     // TextArea의 글을 저장하는 함수
     const chageContents = (e) => {
-        console.log(e.target.value);
+        // console.log(e.target.value);
         setContents(e.target.value);
     }
 

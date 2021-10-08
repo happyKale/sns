@@ -10,7 +10,6 @@ const Login = (props) => {
     const dispatch = useDispatch();
     const [id, setId] = React.useState("");
     const [pwd, setPwd] = React.useState("");
-    const idRef = React.useRef('');
 
     const changeId = (e) => {
         setId(e.target.value);
@@ -41,7 +40,7 @@ const Login = (props) => {
                     <Text family="Pretendard-Regular" color="#A6A6A6" margin="0px" size="16px" align="center">이메일과 비밀번호를 입력하세요.</Text>
                 </Grid>
                 <Grid margin="0px 0px 10vh 0px">
-                    <Input ref={idRef} _onChange={changeId} family="Pretendard-Regular" border="1px solid lightgray" radius="15px 15px 0px 0px" height="60px" padding="0px 15px" placeholder="이메일"/>
+                    <Input _onChange={changeId} family="Pretendard-Regular" border="1px solid lightgray" radius="15px 15px 0px 0px" height="60px" padding="0px 15px" placeholder="이메일"/>
                     <Input type="password" _onChange={changePwd} family="Pretendard-Regular" border="1px solid lightgray" bordertop radius="0px 0px 15px 15px" height="60px" padding="0px 15px" placeholder="비밀번호"/>
                 </Grid>
                 <Grid>
