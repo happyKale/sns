@@ -5,6 +5,8 @@ import { connectRouter } from 'connected-react-router';
 
 // 모듈
 import User from './modules/user';
+import Post from './modules/post';
+import Image from './modules/image';
 
 // 스토어에 히스토리 넣어주기
 export const history = createBrowserHistory();
@@ -12,6 +14,8 @@ export const history = createBrowserHistory();
 // 루트 리듀서
 const rootReducer = combineReducers({
     user: User,
+    post: Post,
+    image: Image,
     // 스토어에 히스토리 넣어주기
     router: connectRouter(history),
 });

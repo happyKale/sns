@@ -2,7 +2,7 @@ import React from "react";
 import styled from 'styled-components';
 
 const Input = (props) => {
-    const {_onChange, type, width, height, size, margin, padding, border, radius, placeholder, bordertop, family} = props;
+    const {_onChange, id, type, width, height, size, margin, padding, border, radius, placeholder, bordertop, family} = props;
 
     const styles = {
         width:width,
@@ -18,7 +18,7 @@ const Input = (props) => {
 
     return(
         <React.Fragment>
-            <InputBox onChange={_onChange} type={type} {...styles} placeholder={placeholder}></InputBox>
+            <InputBox id={id} onChange={_onChange} type={type} {...styles} placeholder={placeholder}></InputBox>
         </React.Fragment>
     );
 };

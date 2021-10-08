@@ -1,15 +1,11 @@
 import React from "react";
-import Header from '../components/Header';
-import { setCookie } from '../shared/Cookie';
 import { Grid, Btn, Input, Text } from '../elements';
-
-import { useHistory } from 'react-router-dom';
+import { setCookie, getCookie, deleteCookie } from '../shared/Cookie';
 
 import { actionCreators as userActions} from '../redux/modules/user';
 import { useDispatch } from 'react-redux';
 
 const Login = (props) => {
-    const history = useHistory();
     const dispatch = useDispatch();
     const [id, setId] = React.useState("");
     const [pwd, setPwd] = React.useState("");
@@ -21,7 +17,12 @@ const Login = (props) => {
         setPwd(e.target.value);
     };
     const login = () => {
-        dispatch(userActions.loginAction({user_name: "seyeon"}));
+        if( id === "" || pwd === "" ){
+            window.alert("아이디 혹은 비밀번호가 공란입니다! 입력해주세요!");
+            return;
+        }
+        // dispatch(userActions.loginAction({user_name: "seyeon"}));
+        dispatch(userActions.loginFB(id, pwd));
     }
 
     return (

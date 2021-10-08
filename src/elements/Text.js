@@ -5,11 +5,11 @@ const Text = (props) => {
     const {children, size, bold, color, align, margin, family, hovercolor} = props;
 
     const styles = {
+        margin:margin,
         size:size,
         bold:bold,
         color:color,
         align: align,
-        margin: margin,
         family: family,
         hovercolor: hovercolor,
     }
@@ -22,12 +22,12 @@ const Text = (props) => {
 };
 
 Text.defaultProps = {
+    margin: false,
     children: null,
     bold: false,
     size: "14px",
     color: null,
     align: false,
-    margin: false,
     family: false,
     hovercolor: false,
 }

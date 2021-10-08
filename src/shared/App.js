@@ -1,7 +1,6 @@
 import React from "react";
 import "./style.css";
-import {Switch, Route, BrowserRouter} from "react-router-dom";
-
+import {Route} from "react-router-dom";
 import { ConnectedRouter } from 'connected-react-router';
 import { history } from '../redux/configureStore';
 
@@ -11,10 +10,26 @@ import Login from '../pages/Login';
 import Signup from '../pages/Signup';
 import PostList from '../pages/PostList';
 import PostWrite from '../pages/PostWrite';
+import PostDetail from '../pages/PostDetail';
 import {Grid} from '../elements';
 
+import {useDispatch} from "react-redux";
+import {actionCreators as userActions} from "../redux/modules/user";
+
+import {apiKey} from "./firebase";
 
 function App() {
+
+  const dispatch = useDispatch();
+  const _session_key = `firebase:authUser:${apiKey}:[DEFAULT]`;
+  const is_session = sessionStorage.getItem(_session_key)? true : false;
+
+  React.useEffect(() => {
+    if(is_session){
+      dispatch(userActions.loginCheckFB());
+    }
+  }, []);
+
   return (
     <React.Fragment>
       {/* <Grid bg="#F3F5F9"> */}
@@ -24,6 +39,7 @@ function App() {
           <Route exact path="/login" component={Login}/>
           <Route exact path="/signup" component={Signup}/>
           <Route exact path="/write" component={PostWrite}/>
+          <Route exact path="/detail" component={PostDetail}/>
         </ConnectedRouter>
       {/* </Grid> */}
     </React.Fragment>

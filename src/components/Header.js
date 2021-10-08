@@ -1,11 +1,12 @@
 import React from "react";
 import { Grid, Btn } from '../elements';
-import { useHistory } from 'react-router-dom';
 import { getCookie, deleteCookie } from '../shared/Cookie';
 import {history} from "../redux/configureStore";
 
 import { useSelector, useDispatch } from 'react-redux';
 import { actionCreators as userActions } from '../redux/modules/user';
+
+import { apiKey } from '../shared/firebase';
 
 const Header = (props) => {
     const dispatch = useDispatch();
@@ -25,7 +26,10 @@ const Header = (props) => {
     //     }
     // });
 
-    if(is_login){
+    const _session_key = `firebase:authUser:${apiKey}:[DEFAULT]`;
+    const is_session = sessionStorage.getItem(_session_key);
+
+    if(is_login && is_session){
         return(
             <React.Fragment>
             <Grid padding="10px 5vh" bg="white">
@@ -45,7 +49,7 @@ const Header = (props) => {
                     <Btn hovercolor="#448AFF" size="10px" bg="white" height="4vh" width="60px" 
                         _onClick={()=>{
                             console.log("로그아웃 하자구!")
-                            dispatch(userActions.logOut({}));
+                            dispatch(userActions.logoutFB());
                         }}>
                         <Grid is_flex_center height="3vh" margin="auto" size="20px">
                             <i className="far fa-user"></i>

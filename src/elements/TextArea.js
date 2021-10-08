@@ -2,7 +2,7 @@ import React from "react";
 import styled from 'styled-components';
 
 const TextArea = (props) => {
-    const {name, width, cols, rows, size, border, bg, radius, padding, margin, family, placeholder} = props;
+    const {_onChange, name, width, cols, rows, size, border, bg, radius, padding, margin, family, placeholder} = props;
 
     const styles = {
         width:width,
@@ -17,16 +17,17 @@ const TextArea = (props) => {
 
     return(
         <React.Fragment>
-            <Area {...styles} name={name} cols={cols} rows={rows} placeholder={placeholder}></Area>
+            <Area {...styles} onChange={_onChange} name={name} cols={cols} rows={rows} placeholder={placeholder}></Area>
         </React.Fragment>
     );
 };
 
 TextArea.defaultProps = {
+    _onChange: () => {},
     name: null,
     width: "100%",
     cols:"40",
-    rows:"5",
+    rows:"4",
     size: "14px",
     border: false,
     bg: false,

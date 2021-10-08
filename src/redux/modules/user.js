@@ -91,7 +91,9 @@ const loginFB = (id, pwd) => {
 };
 
 // 로그인체크
-// 어디다 쓰는 애지????
+// 로그인 유지할 때 사용한다. 파이어베이스를 통해 로그인 한 상태가 맞나 확인.
+// 맞다면 유저 정보를 가져다가 넣어준다.
+// App.js에서 사용한다.
 const loginCheckFB = () => {
     return function (dispatch, getState, {history}) {
         auth.onAuthStateChanged((user) => {
@@ -149,6 +151,9 @@ const actionCreators = {
     getUser,
     loginAction,
     signupFB,
+    loginCheckFB,
+    logoutFB,
+    loginFB,
 };
 
 export { actionCreators };
